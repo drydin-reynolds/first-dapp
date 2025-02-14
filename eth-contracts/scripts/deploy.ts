@@ -1,28 +1,26 @@
+// scripts/deploy.ts (fixed)
 import { ethers } from "hardhat";
 
 async function main() {
-  // Gets the deployer address
   const [deployer] = await ethers.getSigners();
-  console.log("👷 Deployer address:", deployer.address);
+  
+  // Deploy Token
+  const Token = await ethers.getContractFactory("Lock");
+  const token = await Token.deploy();
+  await token.waitForDeployment();
+  const tokenAddress = await token.getAddress();
 
-  // Compile the contract
+  // Deploy JobBoard (1 argument + overrides)
   const JobBoard = await ethers.getContractFactory("JobBoard");
-  
-  // Deploy the contract (Change these values as needed)
   const jobBoard = await JobBoard.deploy(
-    "0xYourTokenAddressHere",  // Replace with your token address
-    ethers.parseEther("0.1")   // Minimum stake value
+    tokenAddress,  // Single constructor argument
+    {}             // Overrides object
   );
-
-  // Wait for deployment confirmation
-  await jobBoard.waitForDeployment();
-  const contractAddress = await jobBoard.getAddress();
   
-  console.log("✅ JobBoard deployed to:", contractAddress);
+  console.log("✅ JobBoard deployed to:", await jobBoard.getAddress());
 }
 
-// Execute and Handle Errors
 main().catch((error) => {
   console.error("⚠️ Deployment failed:", error);
-  process.exitCode = 1;
+  process.exit(1);
 });
