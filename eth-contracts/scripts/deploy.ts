@@ -1,24 +1,28 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const [deployer] = await ethers.getSigners(); // Gets first account
-  console.log("Deploying contracts with account:", deployer.address);
+  // Gets the deployer address
+  const [deployer] = await ethers.getSigners();
+  console.log("👷 Deployer address:", deployer.address);
 
-  const MIN_STAKE = ethers.parseEther("0.1");
-  
-  // Deploy Mock Token (if needed)
-  const Token = await ethers.getContractFactory("MockToken");
-  const token = await Token.deploy();
-  console.log("Token deployed to:", await token.getAddress());
-
-  // Deploy JobBoard
+  // Compile the contract
   const JobBoard = await ethers.getContractFactory("JobBoard");
+  
+  // Deploy the contract (Change these values as needed)
   const jobBoard = await JobBoard.deploy(
-    await token.getAddress(), // Use token address
-    MIN_STAKE
+    "0xYourTokenAddressHere",  // Replace with your token address
+    ethers.parseEther("0.1")   // Minimum stake value
   );
 
-  console.log("JobBoard deployed to:", await jobBoard.getAddress());
+  // Wait for deployment confirmation
+  await jobBoard.waitForDeployment();
+  const contractAddress = await jobBoard.getAddress();
+  
+  console.log("✅ JobBoard deployed to:", contractAddress);
 }
 
-main();
+// Execute and Handle Errors
+main().catch((error) => {
+  console.error("⚠️ Deployment failed:", error);
+  process.exitCode = 1;
+});
